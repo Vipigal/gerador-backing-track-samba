@@ -100,3 +100,8 @@ def test_audio_salva_com_ponto_no_nome(tmp_path: Path):
 
     assert wav.name == "samba_s1_e0.15.wav"
     assert mp3.name == "samba_s1_e0.15.mp3"
+
+
+def test_cli_nao_tem_mais_balanco(tmp_path: Path):
+    with pytest.raises(SystemExit):
+        gerar.main(["--balanco", "0.5", "--derivacao", "cont final", "--out", str(tmp_path)])

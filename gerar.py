@@ -1,5 +1,4 @@
 import argparse
-import json
 from pathlib import Path
 
 from src import gramatica
@@ -11,8 +10,6 @@ from src.render_gm import RenderizadorGM
 from src.sampler import SR, BibliotecaDeSamples, Sampler
 from src.terminais import Terminal
 from src.vocabulario import Vocabulario
-
-MICROTIMING = Path("config/microtiming.json")
 
 
 class Render:
@@ -28,13 +25,6 @@ def ler_derivacao(texto: str) -> list[Terminal]:
     return [validos[nome] for nome in texto.split()]
 
 
-def ler_microtiming() -> tuple[float, float, float, float]:
-    if not MICROTIMING.exists():
-        return (0.0, 0.0, 0.0, 0.0)
-    mu = json.loads(MICROTIMING.read_text())["mu"]
-    return (float(mu[0]), float(mu[1]), float(mu[2]), float(mu[3]))
-
-
 def criar_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Gera uma backing track de samba por gramática probabilística.")
     parser.add_argument("--seed", type=int, default=1)
@@ -46,7 +36,6 @@ def criar_parser() -> argparse.ArgumentParser:
     parser.add_argument("--max-blocos", type=int, default=10)
     parser.add_argument("--cuica-presenca", type=float, default=0.25)
     parser.add_argument("--cuica-variedade", type=float, default=0.5)
-    parser.add_argument("--balanco", type=float, default=0.0)
     parser.add_argument("--render", choices=[Render.BRID, Render.GM], default=Render.BRID)
     parser.add_argument("--samples", type=Path, default=Path("samples"))
     parser.add_argument("--out", type=Path, default=Path("output"))
@@ -71,7 +60,7 @@ def main(argv: list[str] | None = None) -> None:
         )
     except ValueError as erro:
         parser.error(str(erro))
-    render = ParametrosDeRender(bpm=args.bpm, balanco=args.balanco, microtiming=ler_microtiming())
+    render = ParametrosDeRender(bpm=args.bpm)
     fixa: list[Terminal] | None = args.derivacao
     derivacao = fixa if fixa is not None else gramatica.derivar(hiper, args.seed)
     nome = args.nome or (f"derivacao_s{args.seed}" if fixa is not None else f"samba_s{args.seed}_e{args.epsilon}")

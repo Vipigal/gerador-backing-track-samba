@@ -45,19 +45,6 @@ def test_velocidade_vem_do_valor_da_casa():
     assert {e.velocidade for e in eventos} == {78, 108}
 
 
-def test_balanco_desloca_pela_posicao_no_tempo():
-    delta = 60 / (4 * 90)
-    parametros = ParametrosDeRender(
-        bpm=90, balanco=0.5, microtiming=(0.0, 0.0, 0.0, -0.2), sigma_tempo_s=0.0, sigma_velocidade=0.0
-    )
-
-    eventos = Sequenciador(parametros, seed=1).eventos(grade())
-
-    deslocamentos = {round(e.tempo_s / delta) % 4: e.tempo_s / delta - round(e.tempo_s / delta) for e in eventos}
-    assert deslocamentos[0] == pytest.approx(0.0)
-    assert deslocamentos[3] == pytest.approx(-0.1)
-
-
 def test_humanizacao_e_deterministica_pela_seed():
     parametros = ParametrosDeRender(bpm=90)
 

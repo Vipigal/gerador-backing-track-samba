@@ -19,8 +19,6 @@ COMPASSO = (2, 4)
 @dataclass(frozen=True)
 class ParametrosDeRender:
     bpm: float = 90.0
-    balanco: float = 0.0
-    microtiming: tuple[float, float, float, float] = (0.0, 0.0, 0.0, 0.0)
     sigma_tempo_s: float = 0.004
     sigma_velocidade: float = 6.0
 
@@ -52,8 +50,7 @@ class Sequenciador:
 
     def _tempo(self, passo: int) -> float:
         p = self.parametros
-        microtiming = p.balanco * p.microtiming[passo % 4] * p.delta
-        return max(0.0, passo * p.delta + microtiming + self.rng.gauss(0.0, p.sigma_tempo_s))
+        return max(0.0, passo * p.delta + self.rng.gauss(0.0, p.sigma_tempo_s))
 
     def _velocidade(self, valor: int) -> int:
         velocidade = round(VELOCIDADE_POR_VALOR[valor] + self.rng.gauss(0.0, self.parametros.sigma_velocidade))

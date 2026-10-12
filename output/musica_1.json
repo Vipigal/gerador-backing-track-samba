@@ -1,0 +1,39 @@
+{
+  "seed": 3,
+  "hiperparametros": {
+    "epsilon": 0.0,
+    "p": 0.8,
+    "va": 0.3,
+    "b": 0.3,
+    "max_blocos": 10,
+    "cuica_presenca": 0.0,
+    "cuica_variedade": 0.5
+  },
+  "render": {
+    "bpm": 90.0,
+    "sigma_tempo_s": 0.004,
+    "sigma_velocidade": 6.0
+  },
+  "ciclos": 18,
+  "derivacao": [
+    "cont",
+    "base",
+    "base",
+    "base",
+    "base",
+    "base",
+    "base",
+    "base",
+    "breque",
+    "base",
+    "base",
+    "base",
+    "base",
+    "base",
+    "base",
+    "base",
+    "virada",
+    "final"
+  ],
+  "arvore": null
+}
