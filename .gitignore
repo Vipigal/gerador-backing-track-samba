@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+.pytest_cache/
+brid/
+samples_raw/
+resumo/*.aux
+resumo/*.log
+resumo/*.out
+resumo/*.bbl
+resumo/*.blg
+resumo/*.synctex.gz
+resumo/*.fls
+resumo/*.fdb_latexmk

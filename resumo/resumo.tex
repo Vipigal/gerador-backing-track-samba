@@ -1,0 +1,289 @@
+% -----------------------------------------------
+% Resumo do TP1 (DCC831 IA Generativa para Música, UFMG 2026/2)
+% Template ISMIR 2026. Limite: 2 páginas de conteúdo (graduação);
+% referências e AI Usage Statement não contam.
+%
+% Convenção do esqueleto: \nota{...} (azul) marca o que falta escrever.
+% Apague cada \nota quando o parágrafo estiver pronto. Antes de entregar,
+% `grep -n nota resumo.tex` deve voltar vazio (fora a definição).
+% -----------------------------------------------
+
+\documentclass{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[brazil]{babel}
+\usepackage{ismir} % sem "submission": o TP não é anônimo
+\usepackage{amsmath,cite,url}
+\usepackage{graphicx}
+\usepackage{color}
+\usepackage{booktabs}
+
+\newcommand{\nota}[1]{\textcolor{blue}{[#1]}}
+\newcommand{\nt}[1]{\textsc{#1}}      % não-terminal
+\newcommand{\tm}[1]{\texttt{#1}}      % terminal
+
+% ------
+\title{\nota{Título provisório:} Uma Gramática Probabilística para Backing Tracks de Samba}
+
+\oneauthor
+  {Vinícius Pinho}
+  {Departamento de Ciência da Computação, UFMG\\\texttt{\nota{e-mail UFMG}}}
+
+\def\authorname{V. Pinho}
+
+\sloppy
+
+\begin{document}
+
+\maketitle
+
+% =====================================================================
+\begin{abstract}
+\nota{Escrever por último, 150--200 palavras. Uma frase para cada:
+(1) problema: backing track de percussão de samba para praticar improvisação no cavaquinho;
+(2) método: gramática livre de contexto probabilística cujos terminais são ciclos de 2 compassos;
+(3) restrição estilística: samba em 2/4, telecoteco, frases de 8 e blocos de 16 compassos marcados por virada ou breque;
+(4) saída: MIDI reprodutível por seed, áudio com amostras recortadas do BRID;
+(5) resultado: músicas diferentes por seed e por hiperparâmetro, e o que se ouve de diferente;
+(6) a ressalva honesta: a linguagem gerada é regular, e a gramática se justifica pela legibilidade.}
+\end{abstract}
+
+% =====================================================================
+\section{Introdução}\label{sec:introducao}
+
+\nota{§1 Motivação. Quem improvisa no cavaquinho precisa de uma levada estável (a âncora),
+que varie o suficiente para não soar como loop e que \emph{sinalize a forma}, para que ele
+saiba onde está. Referência de ``feel'': playbacks de estudo de surdo, pandeiro e tamborim a
+90 BPM, como os do YouTube.}
+
+\nota{§2 Restrição estilística (exigida pelo TP, deixe explícita): samba em 2/4; ciclo
+rítmico de 2 compassos ancorado no telecoteco do tamborim \cite{sandroni2001}; frases de 8
+compassos agrupadas em blocos de 16, com virada ou breque no fim de cada bloco.
+Instrumentos: surdos de primeira e segunda, pandeiro, tamborim e cuíca.}
+
+\nota{§3 Método e contribuição em 2--3 frases: gramática probabilística em que a hierarquia
+(música $\to$ bloco $\to$ frase $\to$ ciclo) é explícita nas regras, e as probabilidades viram
+hiperparâmetros interpretáveis (quanto varia, quanto dura, quanto a cuíca aparece).}
+
+% =====================================================================
+\section{Trabalhos Relacionados}\label{sec:relacionados}
+
+\nota{Uma frase por trabalho, dizendo \emph{o que você aproveita} de cada um:
+Steedman \cite{steedman1984}: gramática generativa para sequências de acordes de jazz, o
+precedente de usar regras de reescrita para forma musical;
+Lerdahl e Jackendoff \cite{lerdahl1983}: hierarquia métrica e de agrupamento, que justifica
+ciclo, frase e bloco como níveis;
+Sandroni \cite{sandroni2001}: o paradigma rítmico do samba e o telecoteco como ``clave'';
+Maia et al.\ \cite{maia2018}: o BRID, fonte das amostras.}
+
+
+% =====================================================================
+\section{Método}\label{sec:metodo}
+
+\subsection{Representação}\label{sec:representacao}
+
+\nota{Grade de semicolcheias: 8 passos por compasso de 2/4, 16 por ciclo. Cada uma das 8
+pistas (Figura~\ref{fig:grade}) guarda, por passo, 0 (silêncio), 1 (batida) ou 2 (acento).
+Justifique o terminal ser um \emph{ciclo de 2 compassos}, não um compasso: o telecoteco só se
+completa em 2 compassos (``pergunta e resposta''), e um terminal de 1 compasso quebraria a
+clave. Duração do ciclo: $16\Delta$, com $\Delta = 60/(4\cdot\mathrm{BPM})$, ou seja,
+2,67\,s a 90 BPM.}
+
+\begin{figure}[t]
+  \centering
+  \small
+  \begin{tabular}{@{}lll@{}}
+    \toprule
+    pista            & \tm{base}                        & \tm{virada} \\
+    \midrule
+    surdo 1          & \texttt{....X...\,....X...} & \texttt{....X...\,X..X..X.} \\
+    surdo 2          & \texttt{x.......\,x.......} & \texttt{x.......\,X..X..X.} \\
+    pand. grave      & \texttt{x...x...\,x...x...} & \texttt{x...x...\,........} \\
+    pand. platinela  & \texttt{xxxXxxxX\,xxxXxxxX} & \texttt{xxxXxxxX\,........} \\
+    pand. tapa       & \texttt{.......x\,.......x} & \texttt{.......x\,X..X..X.} \\
+    tamborim         & \texttt{x.x.xx.x\,.x.xx.x.} & \texttt{x.x.xx.x\,X..X..X.} \\
+    cuíca grave      & \texttt{........\,........} & \texttt{........\,........} \\
+    cuíca aguda      & \texttt{........\,........} & \texttt{........\,X..X..X.} \\
+    \bottomrule
+  \end{tabular}
+  \caption{Dois terminais na grade de 16 semicolcheias (um ciclo = 2 compassos de 2/4).
+  \texttt{.}~silêncio, \texttt{x}~batida, \texttt{X}~acento. Na \tm{virada}, o 2º compasso
+  troca a levada por uma figura 3-3-2 tocada em uníssono.}
+  \label{fig:grade}
+\end{figure}
+
+\subsection{Gramática}\label{sec:gramatica}
+
+\nota{1 parágrafo apresentando a Tabela~\ref{tab:gramatica}: axioma \nt{Música}; os
+não-terminais; os 14 terminais; cada lado esquerdo soma 1. Diga o que cada nível
+significa musicalmente: \nt{Bloco} = 16 compassos = duas frases; \nt{Fim\_A} e \nt{Fim\_B}
+são os fins de frase, onde caem viradas e breques (nunca no meio, para não desorientar quem
+improvisa); \nt{G} é um ciclo comum, que varia no máximo um instrumento por vez.
+Mencione o limite \texttt{max\_blocos} = 10, que \emph{trunca} a recursão de \nt{Blocos}.}
+
+\begin{table}[t]
+  \centering
+  \small
+  \setlength{\tabcolsep}{3pt}
+  \begin{tabular}{@{}l@{\;}c@{\;}l@{\quad}l@{}}
+    \toprule
+    \nt{Música}  & $\to$ & \tm{cont} \nt{Blocos} \tm{final}           & $1$ \\
+    \nt{Blocos}  & $\to$ & \nt{Bloco} \nt{Blocos} $\mid$ \nt{Bloco}   & $p \mid 1-p$ \\
+    \nt{Bloco}   & $\to$ & \nt{Frase\_A} \nt{Frase\_B}                & $1$ \\
+    \nt{Frase\_A}& $\to$ & \nt{G} \nt{G} \nt{G} \nt{Fim\_A}           & $1$ \\
+    \nt{Frase\_B}& $\to$ & \nt{G} \nt{G} \nt{G} \nt{Fim\_B}           & $1$ \\
+    \nt{Fim\_A}  & $\to$ & \nt{G} $\mid$ \tm{virada}                  & $1-v_a \mid v_a$ \\
+    \nt{Fim\_B}  & $\to$ & \tm{virada} $\mid$ \tm{breque}             & $1-b \mid b$ \\
+    \nt{G}       & $\to$ & \tm{base} $\mid$ \nt{Var\_TB}              & $1-\varepsilon-c \mid \varepsilon/2$ \\
+                 & $\mid$& \nt{Var\_PD} $\mid$ \nt{Var\_CU}           & $\varepsilon/2 \mid c$ \\
+    \nt{Var\_TB} & $\to$ & \tm{tb1} $\mid$ \tm{tb2} $\mid$ \tm{tb3}   & $0{,}40 \mid 0{,}35 \mid 0{,}25$ \\
+    \nt{Var\_PD} & $\to$ & \tm{pd1} $\mid$ \tm{pd2}                   & $0{,}5 \mid 0{,}5$ \\
+    \nt{Var\_CU} & $\to$ & \tm{cu1} $\mid$ \tm{cu2..cu4}              & $1-\tfrac{3v}{4} \mid \tfrac{v}{4}$ cada \\
+    \bottomrule
+  \end{tabular}
+  \caption{Regras de produção. Axioma: \nt{Música}. Terminais:
+  \tm{cont}, \tm{final}, \tm{base}, \tm{tb1--3}, \tm{pd1--2}, \tm{cu1--4},
+  \tm{virada}, \tm{breque}. A recursão de \nt{Blocos} é truncada em
+  \texttt{max\_blocos}~$=10$.}
+  \label{tab:gramatica}
+\end{table}
+
+\subsection{Vocabulário: de terminal a arranjo}\label{sec:vocabulario}
+
+\nota{Cada terminal é um arranjo completo de um ciclo (todas as pistas). Use a
+Tabela~\ref{tab:vocabulario}. Princípio das variantes: preservam a identidade da base; no
+tamborim, mantêm o 1º compasso e mexem em 2 a 3 casas do 2º. A cuíca não tem base: só toca nas
+suas frases. Declare aqui: \textbf{os padrões foram escritos à mão e validados de ouvido,
+inclusive o do pandeiro}; o BRID entra só no timbre (Seção~\ref{sec:audio}).}
+
+\begin{table}[t]
+  \centering
+  \small
+  \begin{tabular}{@{}lp{0.68\columnwidth}@{}}
+    \toprule
+    terminal       & arranjo \\
+    \midrule
+    \tm{cont}      & contagem de 4 tempos no tamborim \\
+    \tm{base}      & surdos, pandeiro e tamborim na levada; cuíca em silêncio \\
+    \tm{tb1--3}    & base com o 2º compasso do tamborim variado (\tm{tb3}: antecipação no 1º) \\
+    \tm{pd1--2}    & base com tapas deslocados (\tm{pd1}) ou grave antecipado (\tm{pd2}) \\
+    \tm{cu1--4}    & base com uma frase de cuíca (grave e aguda) \\
+    \tm{virada}    & 1º compasso da base; 2º com figura 3-3-2 em uníssono \\
+    \tm{breque}    & 1º compasso da base; 2º com uma batida e silêncio \\
+    \tm{final}     & um acento único em uníssono \\
+    \bottomrule
+  \end{tabular}
+  \caption{Terminais e o arranjo de um ciclo que cada um produz.}
+  \label{tab:vocabulario}
+\end{table}
+
+\subsection{Hiperparâmetros}\label{sec:hiper}
+
+\nota{1 parágrafo curto sobre a Tabela~\ref{tab:hiper}. Destaque $\varepsilon$ como o
+principal (de playback monótono a percussão ``conversando'') e $c$ e $v$ como o controle
+independente da cuíca. Use a equação \eqref{eq:tamanho}: com $p=0{,}8$ e o truncamento em 10, $\mathbb{E}[n] = (1-p^{10})/(1-p)
+\approx 4{,}46$ blocos, ou seja, cerca de 38 ciclos (aprox.\ 1min40 a 90 BPM).
+O andamento (BPM) não é hiperparâmetro do método, só do render.}
+
+\begin{table}[t]
+  \centering
+  \small
+  \begin{tabular}{@{}clcl@{}}
+    \toprule
+    símb.         & flag                        & padrão & efeito \\
+    \midrule
+    $\varepsilon$ & \texttt{--epsilon}          & 0,15   & variação de tamborim e pandeiro \\
+    $c$           & \texttt{--cuica-presenca}   & 0,25   & frequência das frases de cuíca \\
+    $v$           & \texttt{--cuica-variedade}  & 0,5    & 0: sempre \tm{cu1}; 1: 4 equiprováveis \\
+    $p$           & \texttt{--p}                & 0,8    & continuação (tamanho) \\
+    $v_a$         & \texttt{--va}               & 0,3    & virada no meio do bloco \\
+    $b$           & \texttt{--b}                & 0,3    & breque no fim do bloco \\
+    \bottomrule
+  \end{tabular}
+  \caption{Hiperparâmetros da gramática ($\varepsilon + c \le 1$).}
+  \label{tab:hiper}
+\end{table}
+
+\begin{equation}\label{eq:tamanho}
+  \mathbb{E}[n] = \sum_{k=0}^{n_{\max}-1} p^k = \frac{1-p^{\,n_{\max}}}{1-p},
+  \qquad \text{ciclos} = 2 + 8n
+\end{equation}
+
+
+\subsection{Do símbolo ao áudio}\label{sec:audio}
+
+\nota{§1 MIDI. Cada nota cai em $t = (16c + i)\Delta + \mathcal{N}(0,\sigma)$, com
+$\sigma = 4$\,ms de humanização; velocidade 78 (batida) ou 108 (acento) mais
+$\mathcal{N}(0,6)$. Um instrumento MIDI por grupo (surdo, pandeiro, tamborim, cuíca), com
+notas do mapa General MIDI. Um \texttt{.json} ao lado guarda a seed, os hiperparâmetros e a
+derivação. A gramática, a humanização e o sampler usam geradores com seeds distintas
+(\textit{seed}, +1, +2): trocar o render não muda a música, e a mesma seed gera o mesmo
+\texttt{.mid}.}
+
+\nota{§2 Sampler BRID \cite{maia2018} (CC BY 4.0). Faixas solo de samba do mesmo
+instrumentista; recorte por onset (librosa); como os solos não têm anotação de beat, a grade
+é ajustada aos próprios onsets; rótulos de articulação por k-means (pandeiro, $k=3$), por
+$f_0$ (cuíca: grave e aguda) e por decaimento (surdo aberto); 2 camadas de dinâmica por RMS;
+6 recortes por camada, os mais típicos; round-robin sem repetição. Fallback: FluidSynth com
+soundfont GM. Mantenha curto: é infraestrutura, não o método.}
+
+% =====================================================================
+\section{Resultados}\label{sec:resultados}
+
+\nota{§1 Como foram geradas as músicas (Tabela~\ref{tab:musicas}): mesma configuração com
+seeds diferentes (requisito 1), mudança de hiperparâmetro (requisito 2) e o controle
+$\varepsilon=0$. Para cada uma, diga o que se ouve de diferente. Os arquivos ficam na
+pasta \texttt{output/} do repositório (URL do GitHub numa nota de rodapé).}
+
+\begin{table}[t]
+  \centering
+  \small
+  \begin{tabular}{@{}lllr@{}}
+    \toprule
+    música          & configuração                          & demonstra          & duração \\
+    \midrule
+    \texttt{musica\_1} & seed 1, padrão                     & resultado típico   & \nota{?} \\
+    \texttt{musica\_2} & seed 2, padrão                     & outra seed         & \nota{?} \\
+    \texttt{musica\_3} & seed 1, $\varepsilon=0{,}45$, $b=0{,}6$ & hiperparâmetro & \nota{?} \\
+    \texttt{musica\_4} & seed 1, $\varepsilon=0$, $c=0$      & controle           & \nota{?} \\
+    \bottomrule
+  \end{tabular}
+  \caption{Músicas entregues. Padrão: valores da Tabela~\ref{tab:hiper}, 90 BPM.}
+  \label{tab:musicas}
+\end{table}
+
+
+\nota{§2 Discussão qualitativa do que se ouve nos extremos: com $\varepsilon=0$ só a forma
+varia e a levada vira um loop; com $\varepsilon$ alto as variações se sucedem e a âncora
+enfraquece. Onde fica o ponto bom para estudar? E o efeito de $c$ e $v$ na cuíca: motivo
+repetido ($v=0$) contra frases variadas ($v=1$).}
+
+% =====================================================================
+\section{Discussão e Trabalhos Futuros}\label{sec:discussao}
+
+\nota{§1 Expressividade, a ressalva central: a linguagem gerada é \textbf{regular}
+(\nt{Blocos} só é recursivo à direita e o resto é finito), então uma cadeia de Markov com
+estados de \emph{posição na frase} geraria as mesmas músicas. O argumento a favor da gramática
+é legibilidade e hierarquia explícita: \nt{Fim\_A} e \nt{Fim\_B} \emph{são} esses estados,
+mas com nome e significado musical. Não diga que a gramática é ``mais poderosa''.}
+
+\nota{§2 Limitações: (a) o surdo é fixo porque uma gramática livre de contexto não ``lembra''
+uma escolha feita no início; seria preciso duplicar regras ou usar uma gramática de
+atributos; pela mesma razão, a cuíca pode repetir a mesma frase em ciclos seguidos; (b) é
+variação combinatória sobre um vocabulário fixo, não improvisação; (c) os padrões foram
+escritos à mão; (d) as amostras vêm de instrumentistas e salas diferentes; (e) a grade é
+quantizada, sem o microtiming (``balanço'') do samba.}
+
+\nota{§3 Trabalhos futuros: gramática de atributos (surdo e motivo da cuíca por música);
+variação condicionada à harmonia do cavaquinho; caixa e repique; microtiming medido no BRID;
+transcrever o pandeiro a partir dos dados.}
+
+% =====================================================================
+% Fora do limite de páginas
+\section*{AI Usage Statement}
+
+\nota{Copiar e condensar a seção ``Uso de IA'' do README.md, que já lista o que foi e o que não foi feito com IA. Links das conversas ficam no README.}
+
+\bibliography{referencias}
+
+\end{document}

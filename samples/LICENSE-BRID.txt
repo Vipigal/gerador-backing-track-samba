@@ -1,0 +1,13 @@
+Os arquivos desta pasta são recortes de faixas solo do
+Brazilian Rhythmic Instruments Dataset (BRID), licenciado sob
+Creative Commons Attribution 4.0 International (CC BY 4.0).
+
+Maia, L. S., Tomaz Jr., P. D., Fuentes, M., Rocamora, M., Biscainho, L. W. P.,
+Costa, M. V. M., & Cohen, S. (2018). A Novel Dataset of Brazilian Rhythmic
+Instruments and Some Experiments in Computational Rhythm Analysis.
+2018 AES Latin American Congress of Audio Engineering, pp. 53-60.
+Dataset: https://doi.org/10.5281/zenodo.14051323
+
+Modificações: recorte por onset, remoção de silêncio inicial, fade-out de
+10 ms e ganho único por instrumento. A origem de cada arquivo está em
+curadoria.csv.
