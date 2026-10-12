@@ -1,0 +1,62 @@
+{
+  "seed": 3,
+  "hiperparametros": {
+    "epsilon": 0.2,
+    "p": 0.8,
+    "va": 0.3,
+    "b": 0.3,
+    "max_blocos": 10,
+    "cuica_presenca": 0.3,
+    "cuica_variedade": 0.8
+  },
+  "render": {
+    "bpm": 90.0,
+    "balanco": 0.0,
+    "microtiming": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "sigma_tempo_s": 0.004,
+    "sigma_velocidade": 6.0
+  },
+  "ciclos": 34,
+  "derivacao": [
+    "cont",
+    "base",
+    "base",
+    "cu2",
+    "cu1",
+    "cu1",
+    "cu2",
+    "cu4",
+    "virada",
+    "cu3",
+    "cu4",
+    "base",
+    "pd2",
+    "cu1",
+    "cu1",
+    "base",
+    "virada",
+    "cu1",
+    "cu3",
+    "cu1",
+    "virada",
+    "base",
+    "cu3",
+    "base",
+    "virada",
+    "base",
+    "pd2",
+    "base",
+    "base",
+    "base",
+    "cu1",
+    "base",
+    "virada",
+    "final"
+  ],
+  "arvore": null
+}

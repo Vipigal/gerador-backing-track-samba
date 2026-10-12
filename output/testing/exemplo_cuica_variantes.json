@@ -1,0 +1,38 @@
+{
+  "seed": 1,
+  "hiperparametros": null,
+  "render": {
+    "bpm": 90.0,
+    "balanco": 0.0,
+    "microtiming": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "sigma_tempo_s": 0.004,
+    "sigma_velocidade": 6.0
+  },
+  "ciclos": 18,
+  "derivacao": [
+    "cont",
+    "base",
+    "cu1",
+    "base",
+    "base",
+    "cu3",
+    "base",
+    "base",
+    "breque",
+    "base",
+    "cu4",
+    "base",
+    "virada",
+    "cu2",
+    "base",
+    "tb2",
+    "virada",
+    "final"
+  ],
+  "arvore": null
+}
